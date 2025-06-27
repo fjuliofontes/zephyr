@@ -1,0 +1,22 @@
+/*
+ * Copyright (c) 2021 Peter Johanson
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	atsamd21_custom_d: connector {
+		compatible = "atsamd21,atsamd21_custom-gpio";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map
+			= <0 0 &porta 14 0>		/* GENERIC_IO */
+			, <0 0 &porta 4 0>		/* uCS */
+			;
+	};
+};
+
+atsamd21_custom_spi: &sercom0 {};
+atsamd21_custom_debug: &sercom4 {};
+atsamd21_custom_dac: &dac0 {};

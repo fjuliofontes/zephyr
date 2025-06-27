@@ -1,0 +1,15 @@
+identifier: stm32l151_modpow
+name: ST STM32L151 ModPow
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 16
+flash: 384
+supported:
+  - gpio
+  - i2c
+  - spi
+vendor: st
