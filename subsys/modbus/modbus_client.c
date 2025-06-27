@@ -24,7 +24,7 @@
 #include <modbus_internal.h>
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(modbus_c, CONFIG_MODBUS_LOG_LEVEL);
+LOG_MODULE_REGISTER(modbus_c, LOG_LEVEL_DBG);
 
 static int mbc_validate_response_fc(struct modbus_context *ctx,
 				    const uint8_t unit_id,
@@ -47,7 +47,6 @@ static int mbc_validate_response_fc(struct modbus_context *ctx,
 		if (excep_code > MODBUS_EXC_NONE) {
 			return excep_code;
 		}
-
 		return -EIO;
 	}
 
@@ -241,6 +240,42 @@ static int mbc_validate_wr_response(struct modbus_context *ctx,
 	return err;
 }
 
+static int mbc_validate_spec_cmd_wr_response(struct modbus_context *ctx,
+				    const uint8_t unit_id,
+				    uint8_t fc,
+					uint8_t *data)
+{
+	int err;
+	uint8_t req_spec_cmd;
+	uint8_t resp_spec_cmd;
+	uint16_t req_value;
+	uint16_t resp_value;
+
+	req_spec_cmd = ctx->tx_adu.data[0];
+	req_value = sys_get_be16(&ctx->tx_adu.data[3]);
+	resp_spec_cmd = ctx->rx_adu.data[0];
+	resp_value = ctx->rx_adu.data[1];
+
+	switch (fc) {
+	case MODBUS_FC66_CUSTOM_COMMAND_WR:
+		if (req_spec_cmd != resp_spec_cmd || req_value != resp_value) {
+			err = ENXIO;
+		} else {
+			for (uint8_t i = 0; i < req_value; i++) {
+				data[i] = ctx->rx_adu.data[i + 2];
+			}
+			err = 0;
+		}
+		break;
+
+	default:
+		LOG_ERR("Validation not implemented for FC 0x%02x", fc);
+		err = -ENOTSUP;
+	}
+
+	return err;
+}
+
 static int mbc_send_cmd(struct modbus_context *ctx, const uint8_t unit_id,
 			uint8_t fc, void *data)
 {
@@ -280,6 +315,10 @@ static int mbc_send_cmd(struct modbus_context *ctx, const uint8_t unit_id,
 	case MODBUS_FC15_COILS_WR:
 	case MODBUS_FC16_HOLDING_REGS_WR:
 		err = mbc_validate_wr_response(ctx, unit_id, fc);
+		break;
+
+	case MODBUS_FC66_CUSTOM_COMMAND_WR:
+		err = mbc_validate_spec_cmd_wr_response(ctx, unit_id, fc, data);
 		break;
 
 	default:
@@ -413,6 +452,33 @@ int modbus_read_input_regs(const int iface,
 	sys_put_be16(num_regs, &ctx->tx_adu.data[2]);
 
 	err = mbc_send_cmd(ctx, unit_id, MODBUS_FC04_IN_REG_RD, reg_buf);
+	k_mutex_unlock(&ctx->iface_lock);
+
+	return err;
+}
+
+int modbus_read_custom_command_regs(const int iface,
+			   const uint8_t unit_id,
+			   const uint8_t spec_cmd,
+			   const uint16_t start_addr,
+			   uint8_t *const reg_buf,
+			   const uint8_t num_regs)
+{
+	struct modbus_context *ctx = modbus_get_context(iface);
+	int err;
+
+	if (ctx == NULL) {
+		return -ENODEV;
+	}
+
+	k_mutex_lock(&ctx->iface_lock, K_FOREVER);
+
+	ctx->tx_adu.length = 5;
+	ctx->tx_adu.data[0] = spec_cmd;
+	sys_put_be16(start_addr, &ctx->tx_adu.data[1]);
+	sys_put_be16(num_regs, &ctx->tx_adu.data[3]);
+
+	err = mbc_send_cmd(ctx, unit_id, MODBUS_FC66_CUSTOM_COMMAND_WR, reg_buf);
 	k_mutex_unlock(&ctx->iface_lock);
 
 	return err;
