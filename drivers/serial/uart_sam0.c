@@ -825,10 +825,16 @@ static int uart_sam0_irq_tx_ready(const struct device *dev)
 static int uart_sam0_irq_tx_complete(const struct device *dev)
 {
 	const struct uart_sam0_dev_cfg *config = dev->config;
+#if defined(SERCOM_REV500)
 	struct uart_sam0_dev_data *const dev_data = dev->data;
+#endif
 	SercomUsart * const regs = config->regs;
 
+#if defined(SERCOM_REV500)
 	return (dev_data->txc_cache != 0) && (regs->INTENSET.bit.TXC != 0);
+#else
+	return (regs->INTFLAG.bit.TXC != 0) && (regs->INTENSET.bit.TXC != 0);
+#endif
 }
 
 static void uart_sam0_irq_rx_enable(const struct device *dev)
