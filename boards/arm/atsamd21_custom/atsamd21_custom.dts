@@ -1,0 +1,167 @@
+/*
+ * Copyright (c) 2020 Google LLC.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include <atmel/samd21.dtsi>
+#include <atmel/samx2xx18.dtsi>
+#include "atsamd21_custom-pinctrl.dtsi"
+#include "atsamd21_custom_connector.dtsi"
+
+/ {
+	model = "ATSAMD21 Custom";
+	compatible = "atsamd21,atsamd21_custom";
+
+	chosen {
+		zephyr,console = &sercom4;
+		zephyr,shell-uart = &sercom4;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &code_partition;
+	};
+
+	/* Define the inboard leds */
+	leds {
+		compatible = "gpio-leds";
+		led: led_0 {
+			gpios = <&portb 22 GPIO_ACTIVE_HIGH>;
+			label = "LED";
+		};
+	};
+
+	/* Define the RS-485 enable GPIOs */
+	rs485_en {
+		compatible = "gpio-rs485-en";
+		rs485_en_1: rs485_en_1 {
+			gpios = <&porta 10 GPIO_ACTIVE_HIGH>;
+			label = "RS485_EN_1";
+		};
+		rs485_en_2: rs485_en_2 {
+			gpios = <&porta 13 GPIO_ACTIVE_HIGH>;
+			label = "RS485_EN_2";
+		};
+		rs485_en_3: rs485_en_3 {
+			gpios = <&porta 12 GPIO_ACTIVE_HIGH>;
+			label = "RS485_EN_3";
+		};
+	};
+
+	/* Define the SPI CS pin */
+	spi_cs {
+		compatible = "gpio-generic";
+		spi_cs_1: spi_cs_1 {
+			gpios = <&porta 4 GPIO_ACTIVE_HIGH>;
+			label = "SPI_CS";
+		};
+	};
+
+	/* Define generic io pin */
+	generic_io {
+		compatible = "gpio-generic";
+		generic_io_1: generic_io_1 {
+			gpios = <&porta 14 GPIO_ACTIVE_HIGH>;
+			label = "GENERIC_IO";
+		};
+	};
+
+	aliases {
+		led0 = &led;
+		rs485-uart-1 = &sercom2;
+		rs485-uart-2 = &sercom1;
+		rs485-uart-3 = &sercom5;
+	};
+};
+
+&cpu0 {
+	clock-frequency = <48000000>;
+};
+
+&sercom4 {
+	status = "okay";
+	compatible = "atmel,sam0-uart";
+	current-speed = <115200>;
+	rxpo = <1>;
+	txpo = <0>;
+
+	pinctrl-0 = <&sercom4_uart_default>;
+	pinctrl-names = "default";
+};
+
+&sercom0 {
+	status = "okay";
+	compatible = "atmel,sam0-spi";
+	dipo = <1>;
+	dopo = <1>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	pinctrl-0 = <&sercom0_spi_default>;
+	pinctrl-names = "default";
+};
+
+&sercom2 {
+	status = "okay";
+	compatible = "atmel,sam0-uart";
+	current-speed = <115200>;
+	rxpo = <1>;
+	txpo = <0>;
+
+	pinctrl-0 = <&sercom2_rs485_default>;
+	pinctrl-names = "default";
+};
+
+&sercom1 {
+	status = "okay";
+	compatible = "atmel,sam0-uart";
+	current-speed = <115200>;
+	rxpo = <1>;
+	txpo = <0>;
+
+	pinctrl-0 = <&sercom1_rs485_default>;
+	pinctrl-names = "default";
+};
+
+&sercom5 {
+	status = "okay";
+	compatible = "atmel,sam0-uart";
+	current-speed = <115200>;
+	rxpo = <1>;
+	txpo = <0>;
+
+	pinctrl-0 = <&sercom5_rs485_default>;
+	pinctrl-names = "default";
+};
+
+zephyr_udc0: &usb0 {
+	status = "okay";
+
+	pinctrl-0 = <&usb_dc_default>;
+	pinctrl-names = "default";
+};
+
+&dac0 {
+	status = "okay";
+
+	pinctrl-0 = <&dac_default>;
+	pinctrl-names = "default";
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		code_partition: partition@0 {
+			label = "code";
+			reg = <0x00000000 DT_SIZE_K(240)>; /* Full flash minus storage */
+		};
+
+		storage_partition: partition@3c000 {
+			label = "storage";
+			reg = <0x0003c000 DT_SIZE_K(16)>;
+		};
+	};
+};
