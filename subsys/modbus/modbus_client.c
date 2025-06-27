@@ -24,7 +24,7 @@
 #include <modbus_internal.h>
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(modbus_c, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(modbus_c, CONFIG_MODBUS_LOG_LEVEL);
 
 static int mbc_validate_response_fc(struct modbus_context *ctx,
 				    const uint8_t unit_id,
