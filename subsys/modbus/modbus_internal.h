@@ -45,6 +45,7 @@
 #define	MODBUS_FC08_DIAGNOSTICS			8
 #define	MODBUS_FC15_COILS_WR			15
 #define	MODBUS_FC16_HOLDING_REGS_WR		16
+#define	MODBUS_FC66_CUSTOM_COMMAND_WR	66
 
 /* Diagnostic sub-function codes */
 #define MODBUS_FC08_SUBF_QUERY			0

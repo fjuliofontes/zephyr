@@ -263,6 +263,12 @@ static int wdt_sam0_init(const struct device *dev)
 #else
 	PM->APBAMASK.bit.WDT_ = 1;
 
+    /* Enable GCLK to output OSCULP32K divided by 32 */
+	GCLK->GENDIV.reg = GCLK_GENDIV_ID(2) | GCLK_GENDIV_DIV(4);
+	GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(2) | GCLK_GENCTRL_GENEN |
+	                    GCLK_GENCTRL_SRC_OSCULP32K | GCLK_GENCTRL_DIVSEL;
+	while (GCLK->STATUS.bit.SYNCBUSY);
+
 	/* Connect to GCLK2 (~1.024 kHz) */
 	GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_WDT
 		| GCLK_CLKCTRL_GEN_GCLK2

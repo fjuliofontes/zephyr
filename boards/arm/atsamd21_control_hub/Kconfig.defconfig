@@ -1,0 +1,8 @@
+# ATSAMD21 Control hub configuration
+
+# Copyright (c) 2020 Google LLC.
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD
+	default "atsamd21_control_hub"
+	depends on BOARD_ATSAMD21_CONTROL_HUB
