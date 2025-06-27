@@ -200,6 +200,31 @@ int modbus_read_input_regs(const int iface,
 			   const uint16_t num_regs);
 
 /**
+ * @brief Read input custom command (FC66)
+ *
+ * Sends a Modbus message to read the value of input registers from
+ * a server.
+ *
+ * @param iface      Modbus interface index
+ * @param unit_id    Modbus unit ID of the server
+ * @param spec_cmd   Special command
+ * @param start_addr Register starting address
+ * @param reg_buf    Is a pointer to an array that will receive
+ *                   the current value of the holding registers
+ *                   from the server.  The array pointed to by 'reg_buf'
+ *                   needs to be able to hold at least 'num_regs' entries.
+ * @param num_regs   Quantity of registers to read
+ *
+ * @retval           0 If the function was successful
+ */
+int modbus_read_custom_command_regs(const int iface,
+			   const uint8_t unit_id,
+			   const uint8_t spec_cmd,
+			   const uint16_t start_addr,
+			   uint8_t *const reg_buf,
+			   const uint8_t num_regs);
+
+/**
  * @brief Write single coil (FC05)
  *
  * Sends a Modbus message to write the value of single coil to a server.
