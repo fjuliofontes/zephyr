@@ -51,7 +51,7 @@
 	/* Define the SPI CS pin */
 	spi_cs {
 		compatible = "gpio-generic";
-		spi_cs_1: spi_cs_1 {
+		spi_cs: spi_cs {
 			gpios = <&porta 4 GPIO_ACTIVE_HIGH>;
 			label = "SPI_CS";
 		};
@@ -70,12 +70,12 @@
 			label = "GENERIC_IO";
 		};
 
-		sn74_clk: sn74_clk {
+		snx4hx595_clock: snx4hx595_clock {
 			gpios = <&porta 9 GPIO_ACTIVE_HIGH>;
 			label = "GENERIC_IO";
 		};
 
-		adc_fsk: adc_fsk {
+		ad654_fout: ad654_fout {
 			gpios = <&porta 16 GPIO_ACTIVE_HIGH>;
 			label = "GENERIC_IO";
 		};
@@ -84,15 +84,15 @@
 	relays_shift_register {
 		compatible = "gpio-generic";
 		/* Define control pins for the TPIC6B595DWR */
-		clock: clock {
+		mic584x_clock: mic584x_clock {
 			gpios = <&porta 13 GPIO_ACTIVE_HIGH>;
 			label = "CLOCK";
 		};
-		strobe: strobe {
+		mic584x_strobe: mic584x_strobe {
 			gpios = <&porta 10 GPIO_ACTIVE_HIGH>;
 			label = "STROBE";
 		};
-		serout: serout {
+		mic584x_serout: mic584x_serout {
 			gpios = <&porta 17 GPIO_ACTIVE_HIGH>;
 			label = "SEROUT";
 		};
@@ -134,7 +134,7 @@
 
 	// cs-gpios = <&porta 4 GPIO_ACTIVE_LOW>;
 
-	pic16f: spi-device@0 {
+	pic16c63: spi-device@0 {
 		status = "okay";
 		compatible = "vnd,spi-device";
 		reg = <0>;
@@ -142,7 +142,7 @@
 		label = "GenDev";
 	};
 
-	sn70: spi-device@1 {
+	snx4hx595: spi-device@1 {
 		status = "okay";
 		compatible = "vnd,spi-device";
 		reg = <0>;
