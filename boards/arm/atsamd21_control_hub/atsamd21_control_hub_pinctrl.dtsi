@@ -14,7 +14,7 @@
 
 	adc0_adc: adc0_adc {
 		group1 {
-			pinmux = <PB8B_ADC_AIN2>, <PA7B_ADC_AIN7>; 
+			pinmux = <PB8B_ADC_AIN2>, <PA7B_ADC_AIN7>;
 		};
 	};
 
