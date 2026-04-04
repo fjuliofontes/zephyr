@@ -28,8 +28,8 @@
  * Interrupt error flag is only supported in devices with
  * SERCOM revision 0x500
  */
-#if defined(SERCOM_U2201) && (REV_SERCOM == 0x500)
-#define SERCOM_REV500
+#if defined(SERCOM_U2201) && (REV_SERCOM >= 0x200)
+#define SAM0_SERCOM_HAS_ERROR_FLAGS
 #endif
 
 /* Device constant configuration parameters */
@@ -466,7 +466,7 @@ static int uart_sam0_configure(const struct device *dev,
 
 	dev_data->config_cache.data_bits = new_cfg->data_bits;
 
-#if defined(SERCOM_REV500)
+#if defined(SAM0_SERCOM_HAS_ERROR_FLAGS)
 	CTRLB_temp.bit.COLDEN = cfg->pads;
 #endif
 
@@ -677,7 +677,7 @@ static int uart_sam0_err_check(const struct device *dev)
 		err |= UART_ERROR_FRAMING;
 	}
 
-#if defined(SERCOM_REV500)
+#if defined(SAM0_SERCOM_HAS_ERROR_FLAGS)
 	if (regs->STATUS.reg & SERCOM_USART_STATUS_ISF) {
 		err |= UART_BREAK;
 	}
@@ -820,16 +820,10 @@ static int uart_sam0_irq_tx_ready(const struct device *dev)
 static int uart_sam0_irq_tx_complete(const struct device *dev)
 {
 	const struct uart_sam0_dev_cfg *config = dev->config;
-#if defined(SERCOM_REV500)
 	struct uart_sam0_dev_data *const dev_data = dev->data;
-#endif
 	SercomUsart * const regs = config->regs;
 
-#if defined(SERCOM_REV500)
 	return (dev_data->txc_cache != 0) && (regs->INTENSET.bit.TXC != 0);
-#else
-	return (regs->INTFLAG.bit.TXC != 0) && (regs->INTENSET.bit.TXC != 0);
-#endif
 }
 
 static void uart_sam0_irq_rx_enable(const struct device *dev)
@@ -883,7 +877,7 @@ static int uart_sam0_irq_is_pending(const struct device *dev)
 	return (regs->INTENSET.reg & regs->INTFLAG.reg) != 0;
 }
 
-#if defined(SERCOM_REV500)
+#if defined(SAM0_SERCOM_HAS_ERROR_FLAGS)
 static void uart_sam0_irq_err_enable(const struct device *dev)
 {
 	const struct uart_sam0_dev_cfg *config = dev->config;
@@ -909,7 +903,6 @@ static int uart_sam0_irq_update(const struct device *dev)
 	const struct uart_sam0_dev_cfg *config = dev->config;
 	SercomUsart * const regs = config->regs;
 
-#if defined(SERCOM_REV500)
 	/*
 	 * Cache the TXC flag, and use this cached value to clear the interrupt
 	 * if we do not used the cached value, there is a chance TXC will set
@@ -918,6 +911,7 @@ static int uart_sam0_irq_update(const struct device *dev)
 	struct uart_sam0_dev_data *const dev_data = dev->data;
 
 	dev_data->txc_cache = regs->INTFLAG.bit.TXC;
+#if defined(SAM0_SERCOM_HAS_ERROR_FLAGS)
 	regs->INTFLAG.reg = SERCOM_USART_INTENCLR_ERROR
 			  | SERCOM_USART_INTENCLR_RXBRK
 			  | SERCOM_USART_INTENCLR_CTSIC
@@ -1200,7 +1194,7 @@ static DEVICE_API(uart, uart_sam0_driver_api) = {
 	.irq_rx_disable = uart_sam0_irq_rx_disable,
 	.irq_rx_ready = uart_sam0_irq_rx_ready,
 	.irq_is_pending = uart_sam0_irq_is_pending,
-#if defined(SERCOM_REV500)
+#if defined(SAM0_SERCOM_HAS_ERROR_FLAGS)
 	.irq_err_enable = uart_sam0_irq_err_enable,
 	.irq_err_disable = uart_sam0_irq_err_disable,
 #endif
