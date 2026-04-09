@@ -1,0 +1,8 @@
+# ATSAMD21 RS485 Extension Interface board configuration
+
+# Copyright (c) 2020 Google LLC.
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD
+	default "atsamd21_rs485_ext"
+	depends on BOARD_ATSAMD21_RS485_EXT

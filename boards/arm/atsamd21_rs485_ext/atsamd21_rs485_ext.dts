@@ -1,0 +1,260 @@
+/*
+ * Copyright (c) 2020 Google LLC.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include <atmel/samd21.dtsi>
+#include <atmel/samx2xx18.dtsi>
+#include "atsamd21_rs485_ext-pinctrl.dtsi"
+
+/ {
+	model = "ATSAMD21 RS485 Extension Interface";
+	compatible = "samd21,atsamd21_rs485_ext", "atmel,samd21g18a", "atmel,samd21";
+
+	chosen {
+		zephyr,console = &sercom4;
+		zephyr,shell-uart = &sercom4;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &code_partition;
+	};
+
+	zephyr,user {
+		io-channels = <&adc 0>, <&adc 1>, <&adc 4>, <&adc 5>, <&adc 6>, <&adc 7>, <&adc 10>;
+		io-channel-names = "slave_sel0", "slave_sel1", "an_v1", "an_v2", "an_i1", "an_i2", "an_i3";
+	};
+
+	/* Status LED on PB22 */
+	leds {
+		compatible = "gpio-leds";
+		status_led: led_0 {
+			gpios = <&portb 22 GPIO_ACTIVE_HIGH>;
+			label = "STATUS";
+		};
+	};
+
+	/* RS485 direction control (DE/RE) for ST1480ABDR */
+	rs485_en {
+		compatible = "gpio-rs485-en";
+		rs485_en_1: rs485_en_1 {
+			gpios = <&porta 11 GPIO_ACTIVE_HIGH>;
+			label = "RS485_EN";
+		};
+	};
+
+	/* Relay outputs — latched bistable relays (EC2-5TNU / G5RL-K1A-E-DC5) */
+	relay_outputs {
+		compatible = "gpio-generic";
+		relay_set1: relay_set1 {
+			gpios = <&porta 16 GPIO_ACTIVE_HIGH>;
+			label = "RELAY_SET1";
+			direction = "output";
+		};
+		relay_reset1: relay_reset1 {
+			gpios = <&porta 14 GPIO_ACTIVE_HIGH>;
+			label = "RELAY_RESET1";
+			direction = "output";
+		};
+		relay_set2: relay_set2 {
+			gpios = <&porta 17 GPIO_ACTIVE_HIGH>;
+			label = "RELAY_SET2";
+			direction = "output";
+		};
+		relay_reset2: relay_reset2 {
+			gpios = <&porta 15 GPIO_ACTIVE_HIGH>;
+			label = "RELAY_RESET2";
+			direction = "output";
+		};
+	};
+
+	/* Opto-coupled digital inputs (TLP185 — PLC 0-24V / free-voltage contact) */
+	digital_inputs {
+		compatible = "gpio-generic";
+		opto_in1: opto_in1 {
+			gpios = <&porta 19 GPIO_ACTIVE_HIGH>;
+			label = "OPTO1";
+			direction = "input";
+		};
+		opto_in2: opto_in2 {
+			gpios = <&porta 20 GPIO_ACTIVE_HIGH>;
+			label = "OPTO2";
+			direction = "input";
+		};
+	};
+
+	/* Miscellaneous control GPIOs */
+	control_gpios {
+		compatible = "gpio-generic";
+		/* Enables analog front-end power (DMC2400UV gate) */
+		analog_enable: analog_enable {
+			gpios = <&porta 10 GPIO_ACTIVE_HIGH>;
+			label = "ANALOG_ENABLE";
+			direction = "output";
+		};
+		/* RS485 transceiver power enable (DMC2400UV gate) */
+		rs485_pwr_en: rs485_pwr_en {
+			gpios = <&porta 18 GPIO_ACTIVE_HIGH>;
+			label = "RS485_PWR_EN";
+			direction = "output";
+		};
+		/* External supply presence sense (via 2N7002 FET) */
+		ext_sense: ext_sense {
+			gpios = <&porta 21 GPIO_ACTIVE_LOW>;
+			label = "EXT_SENSE";
+			direction = "input";
+		};
+	};
+
+	aliases {
+		led0 = &status_led;
+		rs485-uart = &sercom5;
+		modbus-serial = &sercom5;
+	};
+};
+
+&cpu0 {
+	clock-frequency = <48000000>;
+};
+
+/* Debug / console UART — SERCOM4, PB08=TX, PB09=RX */
+&sercom4 {
+	status = "okay";
+	compatible = "atmel,sam0-uart";
+	current-speed = <115200>;
+	rxpo = <1>;
+	txpo = <0>;
+
+	pinctrl-0 = <&sercom4_uart_default>;
+	pinctrl-names = "default";
+};
+
+/* RS485 / Modbus RTU UART — SERCOM5, PA22=TX, PA23=RX */
+&sercom5 {
+	status = "okay";
+	compatible = "atmel,sam0-uart";
+	current-speed = <115200>;
+	rxpo = <1>;
+	txpo = <0>;
+
+	pinctrl-0 = <&sercom5_rs485_default>;
+	pinctrl-names = "default";
+};
+
+/* I2C master — SERCOM2, PA12=SDA, PA13=SCL */
+&sercom2 {
+	status = "okay";
+	compatible = "atmel,sam0-i2c";
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	pinctrl-0 = <&sercom2_i2c_default>;
+	pinctrl-names = "default";
+};
+
+/* ADC — analog inputs
+ *   AIN[0]  = PA00 : SLAVE_SEL0 (resistor-ladder address bit 0)
+ *   AIN[1]  = PA01 : SLAVE_SEL1 (resistor-ladder address bit 1)
+ *   AIN[4]  = PA04 : ucAN_V1    (voltage input 1, range-selectable 0-10V/5V/3V3)
+ *   AIN[5]  = PA05 : ucAN_V2    (voltage input 2, range-selectable 0-10V/5V/3V3)
+ *   AIN[6]  = PA06 : ucAN_I1    (current input 1, 4-20mA)
+ *   AIN[7]  = PA07 : ucAN_I2    (current input 2, 4-20mA)
+ *   AIN[10] = PB02 : ucAN_I3    (current input 3, 4-20mA)
+ */
+&adc {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-0 = <&adc0_adc>;
+	pinctrl-names = "default";
+
+	channel@0 {
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1_2";
+		zephyr,reference = "ADC_REF_VDD_1_2";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+		zephyr,input-positive = <0>;
+		zephyr,vref-mv = <1650>;
+	};
+
+	channel@1 {
+		reg = <1>;
+		zephyr,gain = "ADC_GAIN_1_2";
+		zephyr,reference = "ADC_REF_VDD_1_2";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+		zephyr,input-positive = <1>;
+		zephyr,vref-mv = <1650>;
+	};
+
+	channel@4 {
+		reg = <4>;
+		zephyr,gain = "ADC_GAIN_1_2";
+		zephyr,reference = "ADC_REF_VDD_1_2";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+		zephyr,input-positive = <4>;
+		zephyr,vref-mv = <1650>;
+	};
+
+	channel@5 {
+		reg = <5>;
+		zephyr,gain = "ADC_GAIN_1_2";
+		zephyr,reference = "ADC_REF_VDD_1_2";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+		zephyr,input-positive = <5>;
+		zephyr,vref-mv = <1650>;
+	};
+
+	channel@6 {
+		reg = <6>;
+		zephyr,gain = "ADC_GAIN_1_2";
+		zephyr,reference = "ADC_REF_VDD_1_2";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+		zephyr,input-positive = <6>;
+		zephyr,vref-mv = <1650>;
+	};
+
+	channel@7 {
+		reg = <7>;
+		zephyr,gain = "ADC_GAIN_1_2";
+		zephyr,reference = "ADC_REF_VDD_1_2";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+		zephyr,input-positive = <7>;
+		zephyr,vref-mv = <1650>;
+	};
+
+	channel@10 {
+		reg = <10>;
+		zephyr,gain = "ADC_GAIN_1_2";
+		zephyr,reference = "ADC_REF_VDD_1_2";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+		zephyr,input-positive = <10>;
+		zephyr,vref-mv = <1650>;
+	};
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		code_partition: partition@0 {
+			label = "code";
+			reg = <0x00000000 DT_SIZE_K(240)>; /* Full flash minus storage */
+		};
+
+		storage_partition: partition@3c000 {
+			label = "storage";
+			reg = <0x0003c000 DT_SIZE_K(16)>;
+		};
+	};
+};

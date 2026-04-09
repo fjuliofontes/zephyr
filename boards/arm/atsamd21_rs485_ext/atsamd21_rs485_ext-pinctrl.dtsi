@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2022, Gerson Fernando Budke <nandojve@gmail.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <dt-bindings/pinctrl/samd21-da1gXabcd-pinctrl.h>
+
+&pinctrl {
+	/* SERCOM4: Debug UART — PB08=TX(PAD0), PB09=RX(PAD1), function D */
+	sercom4_uart_default: sercom4_uart_default {
+		group1 {
+			pinmux = <PB8D_SERCOM4_PAD0>,
+				 <PB9D_SERCOM4_PAD1>;
+		};
+	};
+
+	/* SERCOM5: RS485 UART — PA22=TX(PAD0), PA23=RX(PAD1), function D */
+	sercom5_rs485_default: sercom5_rs485_default {
+		group1 {
+			pinmux = <PA22D_SERCOM5_PAD0>,
+				 <PA23D_SERCOM5_PAD1>;
+		};
+	};
+
+	/* SERCOM2: I2C — PA12=SDA(PAD0), PA13=SCL(PAD1), function C */
+	sercom2_i2c_default: sercom2_i2c_default {
+		group1 {
+			pinmux = <PA12C_SERCOM2_PAD0>,
+				 <PA13C_SERCOM2_PAD1>;
+		};
+	};
+
+	adc0_adc: adc0_adc {
+		group1 {
+			pinmux =<PA2B_ADC_AIN0>, <PA3B_ADC_AIN1>, <PA4B_ADC_AIN4>, <PA5B_ADC_AIN5>, <PA6B_ADC_AIN6>, <PA7B_ADC_AIN7>, <PB2B_ADC_AIN10>;
+		};
+	};
+};

@@ -1,0 +1,6 @@
+board:
+  name: atsamd21_rs485_ext
+  full_name: ATSAMD21 RS485 Extension Interface
+  vendor: atmel
+  socs:
+    - name: samd21g18a

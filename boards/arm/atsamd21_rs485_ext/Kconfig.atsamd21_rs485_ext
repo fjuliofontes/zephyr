@@ -1,7 +1,7 @@
-# ATSAMD21 Custom board configuration
+# ATSAMD21 RS485 Extension Interface board configuration
 
 # Copyright (c) 2020 Google LLC.
 # SPDX-License-Identifier: Apache-2.0
 
-config BOARD_ATSAMD21_CONTROL_HUB
+config BOARD_ATSAMD21_RS485_EXT
 	select SOC_SAMD21G18A
