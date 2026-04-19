@@ -1,0 +1,19 @@
+identifier: atsamd21_rs485_ext
+name: ATSAMD21 RS485 Extension Interface
+type: mcu
+arch: arm
+ram: 32
+flash: 256
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+supported:
+  - adc
+  - dma
+  - gpio
+  - hwinfo
+  - i2c
+  - uart
+  - watchdog
+vendor: obiio

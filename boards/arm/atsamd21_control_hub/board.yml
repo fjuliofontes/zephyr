@@ -1,0 +1,6 @@
+board:
+  name: atsamd21_control_hub
+  full_name: ATSAMD21 Control Hub
+  vendor: atmel
+  socs:
+    - name: samd21j18a
