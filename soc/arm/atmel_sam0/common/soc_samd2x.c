@@ -115,7 +115,7 @@ static inline void xosc_init(void)
 #else
 static inline void xosc32k_init(void)
 {
-	SYSCTRL->XOSC32K.reg = SYSCTRL_XOSC32K_STARTUP(0x1) /* 4096 cycles / ~0.13s */
+	SYSCTRL->XOSC32K.reg = SYSCTRL_XOSC32K_STARTUP(0x2) /* 4096 cycles / ~0.13s */
 			     | SYSCTRL_XOSC32K_RUNSTDBY
 			     | SYSCTRL_XOSC32K_EN32K
 			     | SYSCTRL_XOSC32K_AAMPEN
