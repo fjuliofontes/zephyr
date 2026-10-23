@@ -38,6 +38,31 @@
 #define FUSES_OSC32K_CAL_Msk		FUSES_OSC32KCAL_Msk
 #endif
 
+#if CONFIG_SOC_ATMEL_SAMD_DEFAULT_AS_MAIN
+#define gclk_main_reset()
+#else
+/* A bootloader (e.g. MCUboot) may hand over with GCLK0 running from the
+ * DFLL48M, which dfll48m_init() disables while reconfiguring it, and with
+ * OSC8M disabled. Run from OSC8M meanwhile, as after a reset.
+ */
+static inline void gclk_main_reset(void)
+{
+	/* ONDEMAND (reset default) keeps OSC8MRDY low until the clock is requested */
+	SYSCTRL->OSC8M.reg = (SYSCTRL->OSC8M.reg & ~SYSCTRL_OSC8M_ONDEMAND)
+			   | SYSCTRL_OSC8M_ENABLE;
+
+	while (!SYSCTRL->PCLKSR.bit.OSC8MRDY) {
+	}
+
+	GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(0)
+			  | GCLK_GENCTRL_SRC_OSC8M
+			  | GCLK_GENCTRL_GENEN;
+
+	while (GCLK->STATUS.bit.SYNCBUSY) {
+	}
+}
+#endif
+
 #if !CONFIG_SOC_ATMEL_SAMD_OSC8M || CONFIG_SOC_ATMEL_SAMD_DEFAULT_AS_MAIN
 #define osc8m_init()
 #else
@@ -257,6 +282,7 @@ static inline void osc8m_disable(void)
 
 void z_arm_platform_init(void)
 {
+	gclk_main_reset();
 	osc8m_init();
 	osc32k_init();
 	xosc_init();
